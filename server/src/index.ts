@@ -1,9 +1,22 @@
 import express from "express";
 import pino from "pino";
 import { pinoHttp } from "pino-http";
+import { trace } from "@opentelemetry/api";
 
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
+
+  mixin() {
+    const activeSpan = trace.getActiveSpan();
+    if (!activeSpan) return {};
+
+    const spanContext = activeSpan.spanContext();
+
+    return {
+      trace_id: spanContext.traceId,
+      span_id: spanContext.spanId,
+    };
+  },
 });
 
 const app = express();
@@ -22,10 +35,6 @@ const MOCK_INVOICES = Array.from({ length: 50 }, (_, i) => ({
   },
 }));
 
-/**
- * Health Endpoint
- * Returns standard status and system uptime
- */
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "UP",
@@ -34,10 +43,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-/**
- * Paginated Invoices Endpoint
- * Query params: page (default 1), limit (default 10)
- */
 app.get("/api/invoices", (req, res) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -48,7 +53,6 @@ app.get("/api/invoices", (req, res) => {
   req.log.info({ page, limit }, "Fetching paginated invoices");
 
   const results = MOCK_INVOICES.slice(startIndex, endIndex);
-
   res.status(200).json({
     page,
     limit,
