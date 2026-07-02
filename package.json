@@ -3,8 +3,7 @@
   "private": true,
   "workspaces": [
     "client",
-    "server",
-    "tel"
+    "server"
   ],
   "packageManager": "npm@11.12.1",
   "scripts": {
