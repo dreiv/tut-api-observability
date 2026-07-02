@@ -1,0 +1,16 @@
+{
+  "name": "tut-api-observability",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "tel"
+  ],
+  "packageManager": "npm@11.12.1",
+  "scripts": {
+    "dev": "turbo dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.10.1"
+  }
+}
