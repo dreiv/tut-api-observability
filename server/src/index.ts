@@ -1,19 +1,19 @@
 import express from "express";
 import pino from "pino";
 import { pinoHttp } from "pino-http";
-import statusMonitor from "express-status-monitor";
+import { createStream } from "pino-seq";
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-});
+const seqStream = createStream({ serverUrl: "http://127.0.0.1:5341" });
+const logger = pino(
+  {
+    level: process.env.LOG_LEVEL || "info",
+  },
+  seqStream,
+);
 
 const app = express();
 const PORT = 3000;
 
-// 1. Establish the real-time dashboard endpoint at /status
-app.use(statusMonitor());
-
-// 2. Use standard application HTTP logging
 app.use(pinoHttp({ logger }));
 
 const MOCK_INVOICES = Array.from({ length: 50 }, (_, i) => ({
@@ -28,7 +28,7 @@ const MOCK_INVOICES = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 /**
- * Health Endpoint
+ * Health Check
  */
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -62,5 +62,5 @@ app.get("/api/invoices", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  logger.info(`Async Logging Learning API running at http://localhost:${PORT}`);
+  logger.info(`API running at http://localhost:${PORT}`);
 });
